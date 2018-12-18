@@ -1,10 +1,12 @@
 import React from 'react';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
-import Header from './Header';
 import 'lazysizes';
 import 'lazysizes/plugins/attrchange/ls.attrchange';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
+import { createHistory, LocationProvider } from '@reach/router';
+
+import Header from './Header';
 
 const theme = {
   colorBlack: '#212121',
@@ -125,8 +127,14 @@ const StyledMain = styled.main`
 `;
 
 class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.history = createHistory(window);
+  }
+
   componentDidMount() {
     this.props.fetchData();
+    this.subscribeOnHistoryUpdates();
   }
 
   componentDidUpdate(prevProps) {
@@ -142,14 +150,26 @@ class App extends React.Component {
     }
   }
 
+  subscribeOnHistoryUpdates() {
+    this.history.listen(location => {
+      switch (location.action) {
+        case 'PUSH':
+          window.scrollTo(0, 0);
+          break;
+        default:
+          break;
+      }
+    });
+  }
+
   render() {
     return (
       <ThemeProvider theme={theme}>
-        <div>
+        <LocationProvider history={this.history}>
           <GlobalStyle />
           <Header />
           <StyledMain>{this.props.children}</StyledMain>
-        </div>
+        </LocationProvider>
       </ThemeProvider>
     );
   }
